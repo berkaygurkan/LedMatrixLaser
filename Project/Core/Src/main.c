@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -31,9 +32,9 @@ void delay_us (uint16_t delay);
 void CheckLed (void);
 void CheckColumn (void);
 void CheckRow (void);
-static void MX_GPIO_Init_Reverse(void);
 void AverageColumn(void);
 void ShowScreen(void);
+void DisplayScreen(uint16_t display[]);
 
 /* USER CODE END PTD */
 
@@ -63,6 +64,29 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+
+
+
+  
+ 
+  uint16_t go[8] = {0x00,0xF0,0x90,0x87,0xB5,0x95,0xF7,0x00};
+							 
+          
+             
+            
+             
+       
+									
+										
+										
+										
+										
+										
+										
+
+
+
+
 
 /* USER CODE END PFP */
 
@@ -143,8 +167,21 @@ int main(void)
 
 		CheckColumn();																																																			// Lazer Pointer Ile Isaretlenen Satir Degeri Hesaplama Fonksiyonu
 		CheckRow();																																																					// Lazer Pointer Ile Isaretlenen Sutun Degeri Hesaplama Fonksiyonu
-		ShowScreen();																																																				// Ekrana Isaretlenen Deger Yazdiriliyor.
+				
+		HAL_GPIO_DeInit(GPIOA,GPIO_PIN_15);
+		HAL_GPIO_DeInit(GPIOB,GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
+														|GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9);
+		
 
+		if(pointed_row <8 && pointed_column <8)
+		{
+			screen[pointed_row]= screen[pointed_row] | ( 1u<<pointed_column);
+		}
+		
+		
+		
+		//ShowScreen();																																																				// Ekrana Isaretlenen Deger Yazdiriliyor.
+		DisplayScreen(go);
 			
   }
   /* USER CODE END 3 */
@@ -697,19 +734,11 @@ void CheckRow(void)
 
 
 
+
+
 void ShowScreen(void)
 {
-				
-	HAL_GPIO_DeInit(GPIOA,GPIO_PIN_15);
-	HAL_GPIO_DeInit(GPIOB,GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
-                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9);
 	
-
-	if(pointed_row <8 && pointed_column <8)
-	{
-		screen[pointed_row]= screen[pointed_row] | ( 1u<<pointed_column);
-	}
-		
 				
 
 	
@@ -769,6 +798,99 @@ void ShowScreen(void)
 				
 				
 				GPIOA->ODR = screen[row];
+				
+							
+				if(row>0)
+				{
+					GPIOA->BSRR = GPIO_PIN_15;
+				}
+				
+			for(uint16_t k=0; k<100;k++)
+				{
+					delay_us(800);
+				}
+				
+			
+				
+				if(row<1)
+				{
+						GPIOA->BSRR = rows[row];
+				}
+				else
+				{
+						GPIOB->BSRR = rows[row];
+				}
+    }
+  }
+	
+	
+	
+
+}
+
+
+void DisplayScreen(uint16_t display[])
+{
+	
+				
+
+	
+	GPIO_InitTypeDef GPIO_InitStruct = {0};						
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);	
+	
+	
+	GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
+                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	
+
+		
+		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4
+										|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7,GPIO_PIN_RESET);
+		
+		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_15,GPIO_PIN_SET);
+		
+		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3|GPIO_PIN_4
+										|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9,GPIO_PIN_SET);
+
+	
+	for( uint8_t i=0; i<5; i++)	
+	{
+    for( uint8_t row=0; row<8; row++ )
+			{   
+				if(row<1)
+				{
+					GPIO_InitTypeDef GPIO_InitStruct = {0};	
+					GPIO_InitStruct.Pin = rows[row];
+					GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+					HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+					GPIOA->BSRR = rows[row]<<16u;
+				  
+	
+				}
+				else if(row>=1 && row<8)
+				{
+					GPIO_InitTypeDef GPIO_InitStruct = {0};	
+					GPIO_InitStruct.Pin = rows[row];
+					GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+					HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+					GPIOB->BSRR = rows[row]<<16u;
+				}
+				
+				
+				
+				GPIOA->ODR = display[row];
 				
 							
 				if(row>0)
